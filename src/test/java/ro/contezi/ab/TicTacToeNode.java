@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.IntStream;
 
 public class TicTacToeNode implements ABNode {
@@ -82,6 +83,23 @@ public class TicTacToeNode implements ABNode {
         IntStream.range(0,3).forEach(x ->
             IntStream.range(0,3).filter(y -> grid.get(x ).get(y) == ' ').forEach(y -> ret.add(new TicTacToeNode(this, x, y))));
         return ret;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(grid.hashCode(), myCharacter.hashCode(), myOpponentCharacter.hashCode());
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null || getClass() != obj.getClass())
+            return false;
+        TicTacToeNode other = (TicTacToeNode) obj;
+        return Objects.equals(grid, other.grid) && 
+               Objects.equals(myCharacter, other.myCharacter) && 
+               Objects.equals(myOpponentCharacter, other.myOpponentCharacter);
     }
 
 }
