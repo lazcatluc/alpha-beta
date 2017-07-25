@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import ro.contezi.ab.ABNode;
@@ -17,12 +18,14 @@ public class TranspositionAwareNode implements ABNode {
     private final Map<TranspositionAwareNode, Double> transpositions;
     private final Map<TranspositionAwareNode, Integer> depth;
     private final Comparator<TranspositionAwareNode> childrenSorter;
+    private final Consumer<List<TranspositionAwareNode>> listSorter;
 
     public TranspositionAwareNode(ABNode node) {
         this.node = node;
         transpositions = new ConcurrentHashMap<>();
         depth = new ConcurrentHashMap<>();
         this.childrenSorter = (c1, c2) -> Double.compare(c2.heuristicValue(), c1.heuristicValue());
+        this.listSorter = list -> Collections.sort(list, this.childrenSorter);
     }
     
     private TranspositionAwareNode(ABNode child, Map<TranspositionAwareNode, Double> transpositions, 
@@ -31,6 +34,7 @@ public class TranspositionAwareNode implements ABNode {
         this.transpositions = transpositions;
         this.depth = depth;
         this.childrenSorter = childrenSorter.reversed();
+        this.listSorter = list -> Collections.sort(list, this.childrenSorter);
     }
 
     @Override
@@ -51,7 +55,7 @@ public class TranspositionAwareNode implements ABNode {
     public Collection<? extends TranspositionAwareNode> children() {
         List<TranspositionAwareNode> children = node.children().stream().map(child -> 
             new TranspositionAwareNode(child, transpositions, depth, childrenSorter)).collect(Collectors.toList());
-        Collections.sort(children, childrenSorter);
+        listSorter.accept(children);
         return children;
     }
     
