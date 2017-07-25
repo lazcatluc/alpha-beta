@@ -10,10 +10,15 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import ro.contezi.ab.ABNode;
 
 public class TranspositionAwareNode implements ABNode {
     
+    private static final Logger LOGGER = LogManager.getLogger(TranspositionAwareNode.class);
+
     private final ABNode node;
     private final Map<TranspositionAwareNode, Double> transpositions;
     private final Map<TranspositionAwareNode, Integer> depth;
@@ -39,7 +44,12 @@ public class TranspositionAwareNode implements ABNode {
 
     @Override
     public double heuristicValue() {
-        return transpositions.getOrDefault(this, node.heuristicValue());
+        Double cached = transpositions.get(this);
+        if (cached == null) {
+            return node.heuristicValue();
+        }
+        LOGGER.trace("Using cached transposition value");
+        return cached;
     }
 
     @Override
@@ -60,8 +70,14 @@ public class TranspositionAwareNode implements ABNode {
     }
     
     public synchronized void setComputedValueAtDepth(int depth, Double computedValue) {
+        LOGGER.trace("Caching value " + computedValue);
         transpositions.put(this, computedValue);
         this.depth.put(this, depth);
+        LOGGER.trace("Cache size: " + getCacheSize());
+    }
+
+    public int getCacheSize() {
+        return transpositions.size();
     }
 
     @Override
