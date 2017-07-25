@@ -1,6 +1,9 @@
 package ro.contezi.ab.transposable;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -12,15 +15,22 @@ public class TranspositionAwareNode implements ABNode {
     
     private final ABNode node;
     private final Map<TranspositionAwareNode, Double> transpositions;
+    private final Map<TranspositionAwareNode, Integer> depth;
+    private final Comparator<TranspositionAwareNode> childrenSorter;
 
     public TranspositionAwareNode(ABNode node) {
         this.node = node;
         transpositions = new ConcurrentHashMap<>();
+        depth = new ConcurrentHashMap<>();
+        this.childrenSorter = (c1, c2) -> Double.compare(c2.heuristicValue(), c1.heuristicValue());
     }
     
-    private TranspositionAwareNode(ABNode child, Map<TranspositionAwareNode, Double> transpositions) {
+    private TranspositionAwareNode(ABNode child, Map<TranspositionAwareNode, Double> transpositions, 
+            Map<TranspositionAwareNode, Integer> depth, Comparator<TranspositionAwareNode> childrenSorter) {
         this.node = child;
         this.transpositions = transpositions;
+        this.depth = depth;
+        this.childrenSorter = childrenSorter.reversed();
     }
 
     @Override
@@ -30,16 +40,24 @@ public class TranspositionAwareNode implements ABNode {
 
     @Override
     public boolean isTerminal() {
-        return transpositions.containsKey(this) || node.isTerminal();
+        return node.isTerminal();
+    }
+
+    public boolean isTerminal(int depth) {
+        return node.isTerminal() || this.depth.getOrDefault(this, 0) >= depth;
     }
 
     @Override
     public Collection<? extends TranspositionAwareNode> children() {
-        return node.children().stream().map(child -> new TranspositionAwareNode(child, transpositions)).collect(Collectors.toList());
+        List<TranspositionAwareNode> children = node.children().stream().map(child -> 
+            new TranspositionAwareNode(child, transpositions, depth, childrenSorter)).collect(Collectors.toList());
+        Collections.sort(children, childrenSorter);
+        return children;
     }
     
-    public void setComputedValue(Double computedValue) {
+    public synchronized void setComputedValueAtDepth(int depth, Double computedValue) {
         transpositions.put(this, computedValue);
+        this.depth.put(this, depth);
     }
 
     @Override

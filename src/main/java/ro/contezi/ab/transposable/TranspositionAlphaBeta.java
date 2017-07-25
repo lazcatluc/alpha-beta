@@ -11,8 +11,16 @@ public abstract class TranspositionAlphaBeta extends AlphaBeta {
     @Override
     protected double computeNonTerminalValue() {
         double nonTerminalValue = computeNonCachedNonTerminalValue();
-        ((TranspositionAwareNode)getNode()).setComputedValue(nonTerminalValue);
+        ((TranspositionAwareNode)getNode()).setComputedValueAtDepth(getDepth(), nonTerminalValue);
         return nonTerminalValue;
+    }
+    
+    @Override
+    public double getValue() {
+        if (getDepth() == 0 || getNode().isTerminal(getDepth())) {
+            return getNode().heuristicValue();
+        }
+        return computeNonTerminalValue();
     }
 
     @Override
