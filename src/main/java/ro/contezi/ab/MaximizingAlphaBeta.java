@@ -4,6 +4,7 @@ public class MaximizingAlphaBeta extends AlphaBeta {
 
     private final double alpha;
     private final double beta;
+    private ABNode child;
 
     public MaximizingAlphaBeta(ABNode node, int depth, double alpha, double beta) {
         super(node, depth);
@@ -16,7 +17,11 @@ public class MaximizingAlphaBeta extends AlphaBeta {
         double ret = Double.NEGATIVE_INFINITY;
         double myAlpha = alpha;
         for (ABNode child : getNode().children()) {
-            ret = Double.max(ret, new MinimizingAlphaBeta(child, getDepth() - 1, myAlpha, beta).getValue());
+            double childValue = new MinimizingAlphaBeta(child, getDepth() - 1, myAlpha, beta).getValue();
+            if (childValue > ret) {
+                this.child = child;
+            }
+            ret = Double.max(ret, childValue);
             myAlpha = Double.max(myAlpha, ret);
             if (beta <= myAlpha) {
                 break;
@@ -25,4 +30,7 @@ public class MaximizingAlphaBeta extends AlphaBeta {
         return ret;
     }
 
+    public ABNode getChild() {
+        return child;
+    }
 }
