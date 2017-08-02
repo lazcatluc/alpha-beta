@@ -12,8 +12,9 @@ public class TicTacToeExpandBestTest {
     public void initialPositionIsEqual() throws Exception {
         ExpandBest initialPosition = new ExpandBest(new TicTacToeNode("         "));
         
-        while (initialPosition.expand()) {
-            // expanding
+        int expansions = 0;
+        while (initialPosition.expand() && expansions < 100) {
+            expansions++;
         }
         assertThat(initialPosition.getValue()).isEqualTo(0);
     }

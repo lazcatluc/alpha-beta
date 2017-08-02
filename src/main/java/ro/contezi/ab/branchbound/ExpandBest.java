@@ -25,6 +25,10 @@ public class ExpandBest {
     }
 
     public boolean expand() {
+        return expand(1);
+    }
+    
+    private boolean expand(int depth) {
         if (node.isTerminal() || noLongerExpandable) {
             return false;
         }
@@ -32,14 +36,19 @@ public class ExpandBest {
             Collection<? extends ABNode> nodeChildren = node.children();
             children = new PriorityQueue<>(nodeChildren.size(), bestChildFinder);
             Comparator<ExpandBest> reversed = bestChildFinder.reversed();
-            nodeChildren.stream().map(child -> new ExpandBest(child, reversed)).forEach(children::offer);
+            nodeChildren.stream().map(child -> new ExpandBest(child, reversed)).forEach(child -> {
+                if (depth > 0) {
+                    child.expand(depth - 1);
+                }
+                children.offer(child);
+            });
             computeValue();
             return true;
         }
         Iterator<ExpandBest> expander = children.iterator();
         while (expander.hasNext()) {
             ExpandBest next = expander.next();
-            if (next.expand()) {
+            if (next.expand(depth)) {
                 expander.remove();
                 children.offer(next);
                 computeValue();
