@@ -25,4 +25,6 @@ public abstract class AlphaBeta {
     public ABNode getNode() {
         return node;
     }
+    
+    public abstract ABNode getChild();
 }

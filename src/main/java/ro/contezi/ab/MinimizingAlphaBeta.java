@@ -29,6 +29,7 @@ public class MinimizingAlphaBeta extends AlphaBeta {
         return ret;
     }
     
+    @Override
     public ABNode getChild() {
         return child;
     }

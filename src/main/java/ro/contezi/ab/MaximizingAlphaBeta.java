@@ -30,6 +30,7 @@ public class MaximizingAlphaBeta extends AlphaBeta {
         return ret;
     }
 
+    @Override
     public ABNode getChild() {
         return child;
     }
