@@ -15,7 +15,7 @@ public class MinimizingAlphaBeta extends AlphaBeta {
     protected double computeNonTerminalValue() {
         double ret = Double.POSITIVE_INFINITY;
         double myBeta = beta;
-        for (ABNode child : getNode().children()) {
+        for (ABNode child : getNodeChildren()) {
             double childValue = new MaximizingAlphaBeta(child, getDepth() - 1, alpha, myBeta).getValue();
             if (childValue < ret) {
                 this.child = child;

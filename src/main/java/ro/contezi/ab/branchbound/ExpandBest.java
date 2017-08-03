@@ -39,21 +39,14 @@ public class ExpandBest {
             return false;
         }
         if (children == null) {
-            Collection<? extends ABNode> nodeChildren = node.children();
-            PriorityQueue<ExpandBest> childrenToTruncate = new PriorityQueue<>(nodeChildren.size(), bestChildFinder);
-            Comparator<ExpandBest> reversed = bestChildFinder.reversed();
-            nodeChildren.stream().map(child -> new ExpandBest(child, reversed, maxExpandableChildren))
-                .forEach(childrenToTruncate::offer);
-            children = new PriorityQueue<>(bestChildFinder);
-            childrenToTruncate.stream().limit(maxExpandableChildren).forEach(children::offer);
-            computeValue();
+            initChildren();
             return true;
         }
         Iterator<ExpandBest> expander = children.iterator();
         Set<ExpandBest> newlyExpanded = new HashSet<>();
         while (expander.hasNext()) {
             ExpandBest next = expander.next();
-            if (next.expand()) {
+            if (next.expandBest()) {
                 expander.remove();
                 newlyExpanded.add(next);
             }
@@ -67,6 +60,39 @@ public class ExpandBest {
             computeValue();
             return true;
         }
+    }
+    
+    private boolean expandBest() {
+        if (node.isTerminal() || noLongerExpandable) {
+            return false;
+        }
+        if (children == null) {
+            initChildren();
+            return true;
+        }
+        Iterator<ExpandBest> expander = children.iterator();
+        while (expander.hasNext()) {
+            ExpandBest next = expander.next();
+            if (next.expandBest()) {
+                expander.remove();
+                children.offer(next);
+                computeValue();
+                return true;
+            }
+        }
+        noLongerExpandable = true;
+        return false;
+    }
+
+    private void initChildren() {
+        Collection<? extends ABNode> nodeChildren = node.children();
+        PriorityQueue<ExpandBest> childrenToTruncate = new PriorityQueue<>(nodeChildren.size(), bestChildFinder);
+        Comparator<ExpandBest> reversed = bestChildFinder.reversed();
+        nodeChildren.stream().map(child -> new ExpandBest(child, reversed, maxExpandableChildren))
+            .forEach(childrenToTruncate::offer);
+        children = new PriorityQueue<>(bestChildFinder);
+        childrenToTruncate.stream().limit(maxExpandableChildren).forEach(children::offer);
+        computeValue();
     }
     
     private void computeValue() {
